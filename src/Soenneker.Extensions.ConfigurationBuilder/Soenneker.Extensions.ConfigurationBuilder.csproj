@@ -48,6 +48,6 @@
         <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.9" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.9" />
         <PackageReference Include="Soenneker.Enums.DeployEnvironment" Version="4.0.221" />
-        <PackageReference Include="Soenneker.Extensions.Configuration" Version="4.0.831" />
+        <PackageReference Include="Soenneker.Extensions.Configuration" Version="4.0.832" />
     </ItemGroup>
 </Project>
