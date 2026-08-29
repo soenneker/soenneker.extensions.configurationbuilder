@@ -32,6 +32,7 @@ public static class ConfigurationBuilderExtension
     /// Ensures deterministic configuration order and prevents ASP.NET Core from implicitly
     /// injecting environment-specific JSON files.
     /// </remarks>
+    /// <returns>Initializes the <see cref="IConfigurationBuilder"/> by removing undesired configuration sources and adding environment-specific app settings and environment variables.</returns>
     public static IConfigurationBuilder Initialize(this IConfigurationBuilder builder, string? environment)
     {
         IList<IConfigurationSource> sources = builder.Sources;
@@ -58,6 +59,7 @@ public static class ConfigurationBuilderExtension
     /// <summary>
     /// Adds the appropriate appsettings JSON file for the specified environment.
     /// </summary>
+    /// <returns>Adds the appropriate appsettings JSON file for the specified environment.</returns>
     public static IConfigurationBuilder AddAppSettings(this IConfigurationBuilder builder, string? environment, bool optional = _defaultOptional,
         bool reloadOnChange = _defaultReloadOnChange)
     {
@@ -69,6 +71,7 @@ public static class ConfigurationBuilderExtension
     /// <summary>
     /// Adds the appropriate Ocelot configuration JSON file for the specified environment.
     /// </summary>
+    /// <returns>Adds the appropriate Ocelot configuration JSON file for the specified environment.</returns>
     public static IConfigurationBuilder AddOcelotConfig(this IConfigurationBuilder builder, string? environment, bool optional = _defaultOptional,
         bool reloadOnChange = _defaultReloadOnChange)
     {
