@@ -25,14 +25,14 @@ public static class ConfigurationBuilderExtension
     private const string _ocelotPrefix = "ocelot.";
 
     /// <summary>
-    /// Initializes the <see cref="IConfigurationBuilder"/> by removing undesired configuration sources
-    /// and adding environment-specific app settings and environment variables.
+    /// Removes every source except chained and command-line sources, then adds one appsettings JSON source and environment variables.
     /// </summary>
     /// <remarks>
-    /// Ensures deterministic configuration order and prevents ASP.NET Core from implicitly
-    /// injecting environment-specific JSON files.
+    /// Environment variables are added last and therefore take precedence. Custom providers that must be retained should be added after this method.
     /// </remarks>
-    /// <returns>Initializes the <see cref="IConfigurationBuilder"/> by removing undesired configuration sources and adding environment-specific app settings and environment variables.</returns>
+    /// <param name="builder">The builder to reconfigure.</param>
+    /// <param name="environment">The deployment environment used to select the appsettings file.</param>
+    /// <returns>The same builder instance.</returns>
     public static IConfigurationBuilder Initialize(this IConfigurationBuilder builder, string? environment)
     {
         IList<IConfigurationSource> sources = builder.Sources;
@@ -57,37 +57,66 @@ public static class ConfigurationBuilderExtension
     }
 
     /// <summary>
-    /// Adds the appropriate appsettings JSON file for the specified environment.
+    /// Adds one appsettings JSON file for the specified environment.
     /// </summary>
-    /// <returns>Adds the appropriate appsettings JSON file for the specified environment.</returns>
+    /// <param name="builder">The builder to which the JSON source is added.</param>
+    /// <param name="environment">The deployment environment used to select the filename.</param>
+    /// <param name="optional">Whether a missing file is allowed.</param>
+    /// <param name="reloadOnChange">Whether the source reloads when the file changes.</param>
+    /// <returns>The same builder instance.</returns>
     public static IConfigurationBuilder AddAppSettings(this IConfigurationBuilder builder, string? environment, bool optional = _defaultOptional,
         bool reloadOnChange = _defaultReloadOnChange)
     {
-        builder.AddJsonFile(IsKnownEnvironment(environment) ? BuildEnvJson(_appSettingsPrefix, environment!) : _appSettingsBase, optional, reloadOnChange);
+        string path = TryGetKnownEnvironmentName(environment, out string? knownEnvironment)
+            ? BuildEnvJson(_appSettingsPrefix, knownEnvironment)
+            : _appSettingsBase;
+
+        builder.AddJsonFile(path, optional, reloadOnChange);
 
         return builder;
     }
 
     /// <summary>
-    /// Adds the appropriate Ocelot configuration JSON file for the specified environment.
+    /// Adds one Ocelot JSON file for the specified environment.
     /// </summary>
-    /// <returns>Adds the appropriate Ocelot configuration JSON file for the specified environment.</returns>
+    /// <param name="builder">The builder to which the JSON source is added.</param>
+    /// <param name="environment">The deployment environment used to select the filename.</param>
+    /// <param name="optional">Whether a missing file is allowed.</param>
+    /// <param name="reloadOnChange">Whether the source reloads when the file changes.</param>
+    /// <returns>The same builder instance.</returns>
     public static IConfigurationBuilder AddOcelotConfig(this IConfigurationBuilder builder, string? environment, bool optional = _defaultOptional,
         bool reloadOnChange = _defaultReloadOnChange)
     {
-        builder.AddJsonFile(IsKnownEnvironment(environment) ? BuildEnvJson(_ocelotPrefix, environment!) : _ocelotBase, optional, reloadOnChange);
+        string path = TryGetKnownEnvironmentName(environment, out string? knownEnvironment)
+            ? BuildEnvJson(_ocelotPrefix, knownEnvironment)
+            : _ocelotBase;
+
+        builder.AddJsonFile(path, optional, reloadOnChange);
 
         return builder;
     }
 
-    private static bool IsKnownEnvironment(string? environment)
+    private static bool TryGetKnownEnvironmentName(string? environment, out string knownEnvironment)
     {
         if (environment.IsNullOrEmpty())
+        {
+            knownEnvironment = null!;
             return false;
+        }
 
-        return environment.Equals(DeployEnvironment.Production.Name, StringComparison.OrdinalIgnoreCase) ||
-               environment.Equals(DeployEnvironment.Staging.Name, StringComparison.OrdinalIgnoreCase) ||
-               environment.Equals(DeployEnvironment.Development.Name, StringComparison.OrdinalIgnoreCase);
+        if (environment.Equals(DeployEnvironment.Production.Name, StringComparison.OrdinalIgnoreCase))
+            knownEnvironment = DeployEnvironment.Production.Name;
+        else if (environment.Equals(DeployEnvironment.Staging.Name, StringComparison.OrdinalIgnoreCase))
+            knownEnvironment = DeployEnvironment.Staging.Name;
+        else if (environment.Equals(DeployEnvironment.Development.Name, StringComparison.OrdinalIgnoreCase))
+            knownEnvironment = DeployEnvironment.Development.Name;
+        else
+        {
+            knownEnvironment = null!;
+            return false;
+        }
+
+        return true;
     }
 
     private static string BuildEnvJson(string prefix, string environment) => string.Concat(prefix, environment, ".json");

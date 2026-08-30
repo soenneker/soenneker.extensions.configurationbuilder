@@ -5,7 +5,7 @@
 
 # ![](https://user-images.githubusercontent.com/4441470/224455560-91ed3ee7-f510-4041-a8d2-3fc093025112.png) Soenneker.Extensions.ConfigurationBuilder
 
-A collection of helpful ConfigurationBuilder extension methods.
+Adds predictable appsettings, Ocelot, and environment-variable sources to an `IConfigurationBuilder`.
 
 ## Installation
 
@@ -13,17 +13,48 @@ A collection of helpful ConfigurationBuilder extension methods.
 dotnet add package Soenneker.Extensions.ConfigurationBuilder
 ```
 
-## Quick start
+## Initialize a builder
 
 ```csharp
 using Soenneker.Extensions.ConfigurationBuilder;
 
-// Given an existing IConfigurationBuilder named builder:
-var result = builder.Initialize(environment);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+builder.Configuration.Initialize(builder.Environment.EnvironmentName);
 ```
 
-## Common operations
+`Initialize()` deliberately rebuilds most of the source list. It:
 
-- `Initialize()` - Initializes the `IConfigurationBuilder` by removing undesired configuration sources and adding environment-specific app settings and environment variables.
-- `AddAppSettings()` - Adds the appropriate appsettings JSON file for the specified environment.
-- `AddOcelotConfig()` - Adds the appropriate Ocelot configuration JSON file for the specified environment.
+1. Keeps existing chained and command-line sources and removes all other sources.
+2. Adds one appsettings file for the supplied environment.
+3. Adds unprefixed environment variables last, so they override the retained sources and JSON values.
+
+Call it before adding any custom configuration providers that must be retained. Command-line sources are preserved, but environment variables added by this method have higher precedence.
+
+## File selection
+
+The recognized environments and selected files are:
+
+| Environment | App settings | Ocelot |
+| --- | --- | --- |
+| `Development` | `appsettings.Development.json` | `ocelot.Development.json` |
+| `Staging` | `appsettings.Staging.json` | `ocelot.Staging.json` |
+| `Production` | `appsettings.Production.json` | `ocelot.Production.json` |
+| Missing or any other value | `appsettings.json` | `ocelot.json` |
+
+Environment matching is case-insensitive, while generated filenames use the canonical casing shown above. Each method adds exactly one JSON file; it does not layer the base file beneath an environment-specific file.
+
+JSON files are optional and do not reload by default. Override either behavior when adding a source directly:
+
+```csharp
+builder.Configuration.AddAppSettings(
+    builder.Environment.EnvironmentName,
+    optional: false,
+    reloadOnChange: true);
+
+builder.Configuration.AddOcelotConfig(
+    builder.Environment.EnvironmentName,
+    optional: false);
+```
+
+`AddAppSettings()` and `AddOcelotConfig()` append their JSON source without removing existing providers. Use those methods instead of `Initialize()` when you need to keep the builder's existing source collection.
