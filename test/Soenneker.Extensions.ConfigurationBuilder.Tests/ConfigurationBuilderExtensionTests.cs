@@ -1,13 +1,14 @@
 using System.Linq;
 using Microsoft.Extensions.Configuration.Json;
 using Soenneker.Tests.Unit;
+using System.Threading;
 
 namespace Soenneker.Extensions.ConfigurationBuilder.Tests;
 
 public sealed class ConfigurationBuilderExtensionTests : UnitTest
 {
     [Test]
-    public async System.Threading.Tasks.ValueTask AddAppSettings_canonicalizes_known_environment_casing()
+    public async System.Threading.Tasks.ValueTask AddAppSettings_canonicalizes_known_environment_casing(CancellationToken cancellationToken)
     {
         var builder = new Microsoft.Extensions.Configuration.ConfigurationBuilder();
 
@@ -18,7 +19,7 @@ public sealed class ConfigurationBuilderExtensionTests : UnitTest
     }
 
     [Test]
-    public async System.Threading.Tasks.ValueTask AddOcelotConfig_uses_base_file_for_unknown_environment()
+    public async System.Threading.Tasks.ValueTask AddOcelotConfig_uses_base_file_for_unknown_environment(CancellationToken cancellationToken)
     {
         var builder = new Microsoft.Extensions.Configuration.ConfigurationBuilder();
 
