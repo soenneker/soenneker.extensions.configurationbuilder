@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.CommandLine;
 using Soenneker.Enums.DeployEnvironment;
-using Soenneker.Extensions.String;
 
 namespace Soenneker.Extensions.ConfigurationBuilder;
 
@@ -98,7 +97,7 @@ public static class ConfigurationBuilderExtension
 
     private static bool TryGetKnownEnvironmentName(string? environment, out string knownEnvironment)
     {
-        if (environment.IsNullOrEmpty())
+        if (string.IsNullOrEmpty(environment))
         {
             knownEnvironment = null!;
             return false;
