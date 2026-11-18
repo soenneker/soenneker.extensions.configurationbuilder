@@ -50,6 +50,6 @@
         <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="11.0.0" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="11.0.0" />
         <PackageReference Include="Soenneker.Enums.DeployEnvironment" Version="11.0.265" />
-        <PackageReference Include="Soenneker.Extensions.Configuration" Version="11.0.917" />
+        <PackageReference Include="Soenneker.Extensions.Configuration" Version="11.0.918" />
     </ItemGroup>
 </Project>
